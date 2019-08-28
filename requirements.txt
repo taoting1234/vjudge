@@ -1,0 +1,10 @@
+Flask
+Flask-Cors
+Flask-httpauth
+Flask-SQLAlchemy
+Flask-redis
+PyMySQL
+WTForms
+gunicorn
+captcha
+tenacity
