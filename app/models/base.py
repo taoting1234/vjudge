@@ -53,25 +53,26 @@ class Base(db.Model):
                 if hasattr(self, key):
                     setattr(self, key, value)
 
-    def search(self, **kwargs):
-        res = self.query
+    @classmethod
+    def search(cls, **kwargs):
+        res = cls.query
         for key, value in kwargs.items():
             if value is not None:
                 try:
                     value = int(value)
                 except ValueError:
                     pass
-                if hasattr(self, key):
+                if hasattr(cls, key):
                     if isinstance(value, int):
-                        res = res.filter(getattr(self, key) == value)
+                        res = res.filter(getattr(cls, key) == value)
                     else:
-                        res = res.filter(getattr(self, key).like(value))
+                        res = res.filter(getattr(cls, key).like(value))
 
         data = {
             'count': res.count()
         }
-        if hasattr(self, 'id'):
-            res = res.order_by(desc(self.id))
+        if hasattr(cls, 'id'):
+            res = res.order_by(desc(cls.id))
         page = int(kwargs.get('page', 1))
         page_size = int(kwargs.get('page_size', 20))
         res = res.offset((page - 1) * page_size).limit(page_size)

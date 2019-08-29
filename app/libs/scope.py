@@ -31,15 +31,8 @@ def is_in_scope(scope, endpoint):
 
 
 class UserScope(Scope):
-    allow_module = ['v1.token', 'v1.user', 'v1.captcha', 'v1.contest', 'v1.team']
-
-
-class InactivateUserScope(Scope):
-    allow_module = ['v1.token', 'v1.captcha']
-    allow_api = [
-        'v1.user+activate_user_api'
-    ]
+    allow_module = ['v1.token', 'v1.user', 'v1.solution', 'v1.problem', 'v1.language']
 
 
 class AdminScope(Scope):
-    allow_module = ['v1.token', 'v1.user', 'v1.captcha', 'v1.contest', 'v1.team']
+    allow_module = ['v1.token', 'v1.user', 'v1.solution', 'v1.problem', 'v1.language']

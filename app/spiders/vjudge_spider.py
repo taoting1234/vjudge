@@ -1,10 +1,7 @@
 import base64
-import json
 
 from app import create_app
 from app.models.language import Language
-from app.models.remote_user import RemoteUser
-from app.spiders.service import encode_base64
 from app.spiders.spider_http import SpiderHttp
 
 
@@ -54,14 +51,23 @@ class VjudgeSpider:
         data = {
             'language': language,
             'share': 0,
-            'source': encode_base64(code),
+            'source': base64.b64encode(code.encode('utf8')).decode(),
             'captcha': captcha,
             'oj': remote_oj,
             'probNum': remote_problem,
         }
-        res = self.request.post(url=url, data=data).json()
-        if res.get('error'):
-            pass
+        res = self.request.post(url=url, data=data)
+        return res.json()
+
+    def get_status(self, remote_id):
+        url = 'https://vjudge.net/solution/data/{}'.format(remote_id)
+        res = self.request.post(url=url)
+        return res.json()
+
+    def get_captcha(self):
+        url = 'https://vjudge.net/util/captcha'
+        res = self.request.get(url=url)
+        return base64.b64encode(res.content).decode()
 
 
 if __name__ == '__main__':

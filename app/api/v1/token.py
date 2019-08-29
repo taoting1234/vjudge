@@ -10,7 +10,7 @@ from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 api = Redprint('token')
 
 
-@api.route('', methods=['GET'])
+@api.route('/', methods=['GET'])
 @auth.login_required
 def get_token_info_api():
     user = g.user
@@ -22,7 +22,7 @@ def get_token_info_api():
     })
 
 
-@api.route('', methods=['POST'])
+@api.route('/', methods=['POST'])
 def get_token_api():
     form = LoginForm().validate_for_api().data_
     identity = User.verify(form['username'], form['password'])
@@ -36,7 +36,7 @@ def get_token_api():
     }), 201
 
 
-@api.route('', methods=['PUT'])
+@api.route('/', methods=['PUT'])
 @auth.login_required
 def update_token_api():
     identity = {'uid': g.user.username}
@@ -50,7 +50,7 @@ def update_token_api():
     }), 201
 
 
-@api.route('', methods=['DELETE'])
+@api.route('/', methods=['DELETE'])
 @auth.login_required
 def delete_token_api():
     return DeleteSuccess()

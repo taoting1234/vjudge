@@ -4,8 +4,7 @@ from app.libs.error_code import CreateSuccess, Success, Forbidden, NotFound
 from app.libs.redprint import Redprint
 from app.libs.token_auth import auth
 from app.models.user import User
-from app.validators.forms import RegisterForm, UuidForm, UserInfoForm, SearchUserForm
-from app import redis as rd
+from app.validators.forms import RegisterForm, UserInfoForm, SearchUserForm
 
 api = Redprint('user')
 
@@ -40,7 +39,6 @@ def search_user_api():
 @api.route('/', methods=['POST'])
 def register_user_api():
     form = RegisterForm().validate_for_api().data_
-    _verification(form['uuid'])
     User.register(form['username'], form['password'])
     return CreateSuccess('register successful')
 
@@ -57,18 +55,3 @@ def modify_user_api(username):
     form = UserInfoForm().validate_for_api().data_
     User.modify(username, **form)
     return Success('Modify user success')
-
-
-@api.route('/activation', methods=['POST'])
-@auth.login_required
-def activate_user_api():
-    form = UuidForm().validate_for_api().data_
-    _verification(form['uuid'])
-    User.modify(g.user.username, permission=1)
-    return Success('activate success')
-
-
-def _verification(uuid):
-    if not int(rd.hget(uuid, 'success').decode('utf8')):
-        raise Forbidden()
-    rd.delete(uuid)

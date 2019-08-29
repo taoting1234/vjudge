@@ -1,34 +1,33 @@
 from wtforms import StringField, IntegerField
-from wtforms.validators import DataRequired, Regexp, ValidationError
+from wtforms.validators import DataRequired, ValidationError
 
 from app.libs.error_code import NotFound
+from app.models.language import Language
+from app.models.problem import Problem
+from app.models.solution import Solution
 from app.models.user import User
 from app.validators.base import BaseForm as Form
 
 
 class UsernameForm(Form):
-    username = StringField(validators=[DataRequired(message='Username cannot be empty')])
+    username = StringField(validators=[DataRequired()])
 
     def validate_username(self, value):
-        user = User.get_user_by_username(self.username.data)
+        user = User.get_by_id(self.username.data)
         if not user:
             raise NotFound('The user does not exist')
 
 
 class PasswordForm(Form):
-    password = StringField(validators=[DataRequired(message='Password cannot be empty')])
-
-
-class UuidForm(Form):
-    uuid = StringField(validators=[DataRequired(message='Uuid cannot be empty')])
+    password = StringField(validators=[DataRequired()])
 
 
 class LoginForm(UsernameForm, PasswordForm):
     pass
 
 
-class RegisterForm(PasswordForm, UuidForm):
-    username = StringField(validators=[DataRequired(message='Username cannot be empty')])
+class RegisterForm(PasswordForm):
+    username = StringField(validators=[DataRequired()])
 
     def validate_username(self, value):
         user = User.get_user_by_username(self.username.data)
@@ -36,24 +35,17 @@ class RegisterForm(PasswordForm, UuidForm):
             raise NotFound('The user already exist')
 
 
-class MailForm(Form):
-    mail = StringField(validators=[
-        DataRequired(message='Mail cannot be empty'),
-        Regexp(r'^\w[-\w.+]*@([A-Za-z0-9][-A-Za-z0-9]+\.)+[A-Za-z]{2,14}$', message='Mail is invalid')
-    ])
-
-
 class CodeForm(Form):
-    code = StringField(validators=[DataRequired(message='Code cannot be empty')])
+    code = StringField(validators=[DataRequired()])
 
 
 class UserInfoForm(Form):
-    gender = IntegerField(validators=[DataRequired(message='Gender cannot be empty')])
-    college = StringField(validators=[DataRequired(message='College cannot be empty')])
-    profession = StringField(validators=[DataRequired(message='Profession cannot be empty')])
-    class_ = StringField(validators=[DataRequired(message='Class cannot be empty')])
-    phone = StringField(validators=[DataRequired(message='Phone cannot be empty')])
-    qq = StringField(validators=[DataRequired(message='QQ cannot be empty')])
+    gender = IntegerField(validators=[DataRequired()])
+    college = StringField(validators=[DataRequired()])
+    profession = StringField(validators=[DataRequired()])
+    class_ = StringField(validators=[DataRequired()])
+    phone = StringField(validators=[DataRequired()])
+    qq = StringField(validators=[DataRequired()])
     remark = StringField()
 
 
@@ -86,3 +78,29 @@ class SearchUserForm(PageForm):
     qq = StringField()
     permission = IntegerField()
     remark = StringField()
+
+
+class CreateSolutionForm(Form):
+    problem_id = IntegerField(validators=[DataRequired()])
+    language = StringField(validators=[DataRequired()])
+    code = StringField(validators=[DataRequired()])
+
+    def validate_language(self, value):
+        problem = Problem.get_by_id(self.problem_id.data)
+        if not problem:
+            raise ValidationError('The problem does not exist')
+        res = Language.search(oj=problem.remote_oj, key=self.language.data)
+        if res['count'] == 0:
+            raise ValidationError('The language does not exist')
+
+
+class SubmitCaptchaForm(Form):
+    solution_id = IntegerField(validators=[DataRequired()])
+    captcha = StringField(validators=[DataRequired()])
+
+    def validate_solution_id(self, value):
+        solution = Solution.get_by_id(self.solution_id.data)
+        if not solution:
+            raise ValidationError('The solution does not exist')
+        if solution.remote_id:
+            raise ValidationError('The solution was submitted')

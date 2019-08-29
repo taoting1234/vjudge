@@ -2,13 +2,12 @@ import datetime
 
 from sqlalchemy import Column, String, Integer, Text, ForeignKey, DateTime
 from app.models.base import Base, db
-from app.models.solution_log import SolutionLog
 
 
 class Solution(Base):
     id = Column(Integer, autoincrement=True, primary_key=True)
-    problem_id = Column(ForeignKey('problem.id'))
-    username = Column(ForeignKey('user.username'))
+    problem_id = Column(ForeignKey('problem.id'), nullable=False)
+    username = Column(ForeignKey('user.username'), nullable=False)
     code = Column(Text, nullable=False)
     language = Column(String(100), nullable=False)
     language_canonical = Column(String(100), nullable=False)
@@ -16,7 +15,8 @@ class Solution(Base):
     status_canonical = Column(String(100), nullable=False)
     processing = Column(Integer, nullable=False)
     length = Column(Integer, nullable=True)
-    remote_run_id = Column(String(100))
+    remote_id = Column(String(100))
+    remote_user_id = Column(ForeignKey('remote_user.id'), nullable=False)
     additional_info = Column(Text)
     create_time = Column(DateTime, nullable=False)
 
@@ -41,7 +41,7 @@ class Solution(Base):
             return "OTHER"
 
     def get_language_canonical(self):
-        if "c++" in self.language.lower():
+        if "c++" in self.language.lower() or "g++" in self.language.lower():
             return "C++"
         elif "c#" in self.language.lower():
             return "C#"
@@ -49,11 +49,11 @@ class Solution(Base):
             return "PASCAL"
         elif "java" in self.language.lower():
             return "JAVA"
-        elif "python" in self.language.lower():
+        elif "py" in self.language.lower():
             return "PYTHON"
         elif "ruby" in self.language.lower():
             return "RUBY"
-        elif "c" in self.language.lower():
+        elif "c" in self.language.lower() or "gcc" in self.language.lower():
             return "C"
         else:
             return "OTHER"
@@ -67,7 +67,7 @@ class Solution(Base):
         self.length = self.get_length()
 
     @staticmethod
-    def create_solution(problem_id, username, code, language, status='create solution'):
+    def create_solution(problem_id, username, code, language, remote_user_id, status='create solution'):
         with db.auto_commit():
             solution = Solution()
             solution.problem_id = problem_id
@@ -76,11 +76,11 @@ class Solution(Base):
             solution.language = language
             solution.status = status
             solution.create_time = datetime.datetime.now()
+            solution.remote_user_id = remote_user_id
             solution.processing = 1
             solution.update_status()
             db.session.add(solution)
-
-        SolutionLog.create_solution_log(solution.id, status)
+        return solution
 
     def modify(self, **kwargs):
         with db.auto_commit():

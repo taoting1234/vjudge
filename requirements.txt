@@ -8,3 +8,4 @@ WTForms
 gunicorn
 captcha
 tenacity
+requests

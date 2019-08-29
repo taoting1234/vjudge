@@ -37,12 +37,12 @@ class User(Base):
             return 'UserScope'
         elif self.permission == -1:  # 管理员
             return 'AdminScope'
-        else:  # 未激活用户
-            return 'InactivateUserScope'
+        else:
+            return 'UserScope'
 
     @classmethod
     def verify(cls, username, password):
-        user = cls.get_user_by_username(username)
+        user = cls.get_by_id(username)
         if not user.check_password(password):
             raise AuthFailed('username or password wrong')
         return {'uid': user.username}
