@@ -31,8 +31,8 @@ def is_in_scope(scope, endpoint):
 
 
 class UserScope(Scope):
-    allow_module = ['v1.token', 'v1.user', 'v1.solution', 'v1.problem', 'v1.language']
+    allow_module = ['v1.userresource', 'v1.usercollectionresource', 'v1.sessionresource']
 
 
 class AdminScope(Scope):
-    allow_module = ['v1.token', 'v1.user', 'v1.solution', 'v1.problem', 'v1.language']
+    allow_module = ['v1.userresource', 'v1.usercollectionresource', 'v1.sessionresource']

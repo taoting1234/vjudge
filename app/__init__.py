@@ -1,16 +1,12 @@
 from flask_cors import CORS
 from flask_redis import FlaskRedis
 
-from .app import Flask
+from app.api.v1 import bp_v1
+from flask import Flask
 from app.models.base import db
 
 cors = CORS(supports_credentials=True)
 redis = FlaskRedis()
-
-
-def register_blueprints(flask_app):
-    from app.api.v1 import create_blueprint_v1
-    flask_app.register_blueprint(create_blueprint_v1(), url_prefix='/v1')
 
 
 def register_plugin(flask_app):
@@ -28,6 +24,10 @@ def register_plugin(flask_app):
     redis.init_app(flask_app)
 
 
+def register_blueprint(flask_app):
+    flask_app.register_blueprint(bp_v1)
+
+
 def create_app():
     flask_app = Flask(__name__)
 
@@ -35,7 +35,7 @@ def create_app():
     flask_app.config.from_object('app.config.setting')
     flask_app.config.from_object('app.config.secure')
 
-    register_blueprints(flask_app)
     register_plugin(flask_app)
+    register_blueprint(flask_app)
 
     return flask_app

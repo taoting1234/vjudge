@@ -1,13 +1,11 @@
 import hashlib
 import time
-
 from flask import current_app, g, request
 from flask_httpauth import HTTPBasicAuth
 from itsdangerous import TimedJSONWebSignatureSerializer \
     as Serializer, BadSignature, SignatureExpired
-
-from app.config.secure import WHITELIST_UA
-from app.libs.error_code import AuthFailed, Forbidden, NotFound
+from app.config.secure import WHITELIST_UA, SECRET_KEY
+from app.libs.error import NotFound, Forbidden, AuthFailed
 from app.libs.scope import is_in_scope
 from app.models.user import User
 
@@ -34,9 +32,9 @@ def verify_token(token, secret):
     try:
         data = s.loads(token)
     except BadSignature:
-        raise AuthFailed(msg='token is invalid', error_code=1002)
+        raise AuthFailed('token is invalid')
     except SignatureExpired:
-        raise AuthFailed(msg='token is expired', error_code=1003)
+        raise AuthFailed('token is expired')
     uid = data['uid']
     user = User.get_by_id(uid)
     if not user:
@@ -46,3 +44,8 @@ def verify_token(token, secret):
         raise Forbidden()
     g.user = user
     return True
+
+def generate_auth_token(uid, expiration):
+    """生成令牌"""
+    s = Serializer(SECRET_KEY, expires_in=expiration)
+    return s.dumps({'uid': uid}).decode('ascii')

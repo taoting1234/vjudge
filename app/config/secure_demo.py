@@ -9,14 +9,3 @@ SQLALCHEMY_TRACK_MODIFICATIONS = False
 # 定义flask信息
 SECRET_KEY = ''
 WHITELIST_UA = ''
-
-# 定义邮件信息
-MAIL_SERVER = None
-MAIL_PORT = 25
-MAIL_USE_SSL = False
-MAIL_USERNAME = None
-MAIL_PASSWORD = None
-MAIL_DEFAULT_SENDER = None
-
-# 定义redis信息
-REDIS_URL = ''
