@@ -3,6 +3,7 @@ Flask-Cors
 Flask-httpauth
 Flask-SQLAlchemy
 Flask-redis
+Flask-restful
 PyMySQL
 WTForms
 gunicorn
