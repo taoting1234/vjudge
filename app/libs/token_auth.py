@@ -1,3 +1,4 @@
+import functools
 import hashlib
 import time
 from flask import current_app, g, request
@@ -5,8 +6,7 @@ from flask_httpauth import HTTPBasicAuth
 from itsdangerous import TimedJSONWebSignatureSerializer \
     as Serializer, BadSignature, SignatureExpired
 from app.config.secure import WHITELIST_UA, SECRET_KEY
-from app.libs.error import NotFound, Forbidden, AuthFailed
-from app.libs.scope import is_in_scope
+from app.libs.error import Forbidden, AuthFailed
 from app.models.user import User
 
 auth = HTTPBasicAuth()
@@ -36,16 +36,32 @@ def verify_token(token, secret):
     except SignatureExpired:
         raise AuthFailed('token is expired')
     uid = data['uid']
-    user = User.get_by_id(uid)
-    if not user:
-        raise NotFound()
-    allow = is_in_scope(user.scope, request.endpoint)
-    if not allow:
-        raise Forbidden()
-    g.user = user
+    g.user = User.get_by_id(uid)
     return True
+
 
 def generate_auth_token(uid, expiration):
     """生成令牌"""
     s = Serializer(SECRET_KEY, expires_in=expiration)
     return s.dumps({'uid': uid}).decode('ascii')
+
+
+def self_only(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        if kwargs.get('id_'):
+            if g.user.id != kwargs['id_'] and g.user.permission != -1:
+                raise Forbidden()
+        return func(*args, **kwargs)
+
+    return wrapper
+
+
+def admin_only(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        if g.user.permission != -1:
+            raise Forbidden()
+        return func(*args, **kwargs)
+
+    return wrapper

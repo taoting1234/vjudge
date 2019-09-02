@@ -3,12 +3,13 @@ from flask_restful import abort
 
 class APIException(Exception):
     code = 500
+    error_code = 2000
     msg = 'sorry, we made a mistake (*￣︶￣)!'
 
     def __init__(self, msg=None):
         if msg:
             self.msg = msg
-        abort(self.code, message=self.msg)
+        abort(self.code, message=self.msg, code=self.error_code)
 
 
 class ParameterException(APIException):

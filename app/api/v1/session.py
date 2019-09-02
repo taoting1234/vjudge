@@ -26,5 +26,6 @@ class SessionResource(Resource):
         token = generate_auth_token(g.user.id, TOKEN_EXPIRATION)
         return {'token': token}
 
+    @auth.login_required
     def delete(self):
         return {'message': 'delete success'}, 204

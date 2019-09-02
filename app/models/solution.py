@@ -7,7 +7,7 @@ from app.models.base import Base, db
 class Solution(Base):
     id = Column(Integer, autoincrement=True, primary_key=True)
     problem_id = Column(ForeignKey('problem.id'), nullable=False)
-    username = Column(ForeignKey('user.username'), nullable=False)
+    user_id = Column(ForeignKey('user.id'), nullable=False)
     code = Column(Text, nullable=False)
     language = Column(String(100), nullable=False)
     language_canonical = Column(String(100), nullable=False)
@@ -16,7 +16,7 @@ class Solution(Base):
     processing = Column(Integer, nullable=False)
     length = Column(Integer, nullable=True)
     remote_id = Column(String(100))
-    remote_user_id = Column(ForeignKey('remote_user.id'), nullable=False)
+    remote_user_id = Column(ForeignKey('remote_user.id'))
     additional_info = Column(Text)
     create_time = Column(DateTime, nullable=False)
 
@@ -58,29 +58,27 @@ class Solution(Base):
         else:
             return "OTHER"
 
-    def get_length(self):
+    def get_code_length(self):
         return len(self.code)
 
     def update_status(self):
         self.language_canonical = self.get_language_canonical()
         self.status_canonical = self.get_status_canonical()
-        self.length = self.get_length()
+        self.length = self.get_code_length()
 
-    @staticmethod
-    def create_solution(problem_id, username, code, language, remote_user_id, status='create solution'):
+    @classmethod
+    def create(cls, **kwargs):
+        base = cls()
         with db.auto_commit():
-            solution = Solution()
-            solution.problem_id = problem_id
-            solution.username = username
-            solution.code = code
-            solution.language = language
-            solution.status = status
-            solution.create_time = datetime.datetime.now()
-            solution.remote_user_id = remote_user_id
-            solution.processing = 1
-            solution.update_status()
-            db.session.add(solution)
-        return solution
+            for key, value in kwargs.items():
+                if value is not None:
+                    if hasattr(cls, key):
+                        setattr(base, key, value)
+            if hasattr(cls, 'create_time'):
+                setattr(base, 'create_time', datetime.datetime.now())
+            base.update_status()
+            db.session.add(base)
+        return base
 
     def modify(self, **kwargs):
         with db.auto_commit():

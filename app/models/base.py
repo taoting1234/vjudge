@@ -1,7 +1,8 @@
+import datetime
 from contextlib import contextmanager
 from flask_sqlalchemy import BaseQuery
 from flask_sqlalchemy import SQLAlchemy as _SQLAlchemy
-from sqlalchemy import desc
+from sqlalchemy import desc, asc
 
 
 class SQLAlchemy(_SQLAlchemy):
@@ -34,6 +35,8 @@ class Base(db.Model):
                 if value is not None:
                     if hasattr(cls, key):
                         setattr(base, key, value)
+            if hasattr(cls, 'create_time'):
+                setattr(base, 'create_time', datetime.datetime.now())
             db.session.add(base)
 
     def modify(self, **kwargs):
@@ -48,20 +51,20 @@ class Base(db.Model):
         res = cls.query
         for key, value in kwargs.items():
             if value is not None:
-                try:
-                    value = int(value)
-                except ValueError:
-                    pass
                 if hasattr(cls, key):
-                    if isinstance(value, int):
-                        res = res.filter(getattr(cls, key) == value)
+                    if isinstance(value, str):
+                        res = res.filter(getattr(cls, key).like('%' + value + '%'))
                     else:
-                        res = res.filter(getattr(cls, key).like(value))
+                        res = res.filter(getattr(cls, key) == value)
 
-        if hasattr(cls, 'id'):
-            res = res.order_by(desc(cls.id))
-        page = int(kwargs.get('page')) if kwargs.get('page') else 1
-        page_size = int(kwargs.get('page_size')) if kwargs.get('page_size') else 20
+        for key, value in kwargs.get('order', dict()).items():
+            if hasattr(cls, key):
+                if value == 'asc':
+                    res = res.order_by(asc(getattr(cls, key)))
+                elif value == 'desc':
+                    res = res.order_by(desc(getattr(cls, key)))
+        page = kwargs.get('page') if kwargs.get('page') else 1
+        page_size = kwargs.get('page_size') if kwargs.get('page_size') else 20
         data = {
             'meta': {
                 'count': res.count(),
@@ -69,6 +72,7 @@ class Base(db.Model):
                 'page_size': page_size
             }
         }
+
         res = res.offset((page - 1) * page_size).limit(page_size)
         res = res.all()
         data['data'] = res
