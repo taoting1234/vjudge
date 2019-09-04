@@ -2,6 +2,9 @@ import datetime
 
 from sqlalchemy import Column, String, Integer, Text, ForeignKey, DateTime
 from app.models.base import Base, db
+# 导入
+from app.models.problem import Problem
+from app.models.remote_user import RemoteUser
 
 
 class Solution(Base):
@@ -68,17 +71,18 @@ class Solution(Base):
 
     @classmethod
     def create(cls, **kwargs):
-        base = cls()
+        solution = cls()
         with db.auto_commit():
             for key, value in kwargs.items():
                 if value is not None:
                     if hasattr(cls, key):
-                        setattr(base, key, value)
+                        setattr(solution, key, value)
             if hasattr(cls, 'create_time'):
-                setattr(base, 'create_time', datetime.datetime.now())
-            base.update_status()
-            db.session.add(base)
-        return base
+                setattr(solution, 'create_time', datetime.datetime.now())
+            solution.processing = 0
+            solution.update_status()
+            db.session.add(solution)
+        return solution
 
     def modify(self, **kwargs):
         with db.auto_commit():

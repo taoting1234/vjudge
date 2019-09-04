@@ -10,3 +10,4 @@ gunicorn
 captcha
 tenacity
 requests
+BeautifulSoup4

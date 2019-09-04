@@ -9,18 +9,19 @@ class SolutionLog(Base):
     id = Column(Integer, autoincrement=True, primary_key=True)
     solution_id = Column(ForeignKey('solution.id'))
     status = Column(String(100), nullable=False)
-    captcha = Column(Text)
     create_time = Column(DateTime, nullable=False)
 
-    @staticmethod
-    def create_solution_log(solution_id, status, captcha=None):
+    @classmethod
+    def create(cls, **kwargs):
+        solution_log = cls()
         with db.auto_commit():
-            solution_log = SolutionLog()
-            solution_log.solution_id = solution_id
-            solution_log.status = status
-            solution_log.captcha = captcha
-            solution_log.create_time = datetime.datetime.now()
+            for key, value in kwargs.items():
+                if value is not None:
+                    if hasattr(cls, key):
+                        setattr(solution_log, key, value)
+            if hasattr(cls, 'create_time'):
+                setattr(solution_log, 'create_time', datetime.datetime.now())
             db.session.add(solution_log)
 
-            solution = Solution.get_by_id(solution_id)
-            solution.status = status
+            solution = Solution.get_by_id(solution_log.solution_id)
+            solution.status = solution_log.status

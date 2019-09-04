@@ -9,15 +9,6 @@ class Language(Base):
     value = Column(String(100), nullable=False)
 
     @staticmethod
-    def create_language(oj, key, value):
+    def delete_oj(oj):
         with db.auto_commit():
-            language = Language()
-            language.oj = oj
-            language.key = key
-            language.value = value
-            db.session.add(language)
-
-    @staticmethod
-    def delete_all():
-        with db.auto_commit():
-            Language.query.delete()
+            Language.query.filter_by(oj=oj).delete()

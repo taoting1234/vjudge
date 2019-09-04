@@ -18,4 +18,4 @@ class LanguageResource(Resource):
     @auth.login_required
     @marshal_with(language_list_fields)
     def get(self):
-        return {'data': Language.search(page=1, page_size=100000)['data']}
+        return {'data': Language.search(page_size=100000)['data']}
