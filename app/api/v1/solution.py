@@ -3,11 +3,12 @@ from flask_restful import Resource, reqparse, marshal_with, fields
 from app.libs.error import NotFound, ParameterException
 from app.libs.fields import meta_fields
 from app.libs.parser import search_parser
-from app.libs.token_auth import auth
+from app.libs.token_auth import auth, self_only, admin_only
 from app.models.language import Language
 from app.models.problem import Problem
 from app.models.solution import Solution
-from app.spiders.service import submit_code
+from app.models.solution_log import SolutionLog
+from app.spiders.service import async_submit_code
 
 create_solution_parser = reqparse.RequestParser()
 create_solution_parser.add_argument('problem_id', type=int, required=True)
@@ -21,11 +22,13 @@ search_solution_parser.add_argument('language_canonical', type=str)
 search_solution_parser.add_argument('status_canonical', type=str)
 search_solution_parser.add_argument('processing', type=int)
 
+modify_solution_parser = reqparse.RequestParser()
+modify_solution_parser.add_argument('status', type=str, required=True)
+
 solution_fields = {
     'id': fields.Integer,
     'problem_id': fields.Integer,
     'user_id': fields.String,
-    'code': fields.String,
     'language': fields.String,
     'language_canonical': fields.String,
     'status': fields.String,
@@ -37,9 +40,22 @@ solution_fields = {
     'create_time': fields.DateTime(dt_format='iso8601')
 }
 
+solution_code_fields = solution_fields.copy()
+solution_code_fields['code'] = fields.String
+
 solution_list_fields = {
     'data': fields.List(fields.Nested(solution_fields)),
     'meta': fields.Nested(meta_fields)
+}
+
+solution_log_fields = {
+    'id': fields.Integer,
+    'status': fields.String,
+    'create_time': fields.DateTime('iso8601')
+}
+
+solution_log_list_fields = {
+    'data': fields.List(fields.Nested(solution_log_fields)),
 }
 
 
@@ -51,6 +67,36 @@ class SolutionResource(Resource):
         if solution is None:
             raise NotFound()
         return solution
+
+    @auth.login_required
+    @admin_only
+    @marshal_with(solution_fields)
+    def patch(self, id_):
+        solution = Solution.get_by_id(id_)
+        if solution is None:
+            raise NotFound()
+        status = modify_solution_parser.parse_args()['status']
+        SolutionLog.create(solution_id=solution.id, status='{} modify status to {}'.format(g.user.id, status))
+
+
+class SolutionCodeResource(Resource):
+    @auth.login_required
+    @self_only
+    @marshal_with(solution_code_fields)
+    def get(self, id_):
+        solution = Solution.get_by_id(id_)
+        if solution is None:
+            raise NotFound()
+        return solution
+
+
+class SolutionLogResource(Resource):
+    @auth.login_required
+    @self_only
+    @marshal_with(solution_log_list_fields)
+    def get(self, id_):
+        solution_log = SolutionLog.search(solution_id=id_, page_size=100000)['data']
+        return {'data': solution_log}
 
 
 class SolutionCollectionResource(Resource):
@@ -65,7 +111,7 @@ class SolutionCollectionResource(Resource):
         old_language = args['language']
         args['language'] = real_language
         solution = Solution.create(**args, user_id=g.user.id, status='create solution')
-        submit_code(args['problem_id'], solution.id, old_language, args['code'])
+        async_submit_code(args['problem_id'], solution.id, old_language, args['code'])
         return {'message': 'create success', 'solution_id': solution.id}, 201
 
 

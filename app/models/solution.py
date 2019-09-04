@@ -1,5 +1,4 @@
 import datetime
-
 from sqlalchemy import Column, String, Integer, Text, ForeignKey, DateTime
 from app.models.base import Base, db
 # 导入
@@ -79,7 +78,7 @@ class Solution(Base):
                         setattr(solution, key, value)
             if hasattr(cls, 'create_time'):
                 setattr(solution, 'create_time', datetime.datetime.now())
-            solution.processing = 0
+            solution.processing = 1
             solution.update_status()
             db.session.add(solution)
         return solution

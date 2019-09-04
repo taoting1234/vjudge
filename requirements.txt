@@ -11,3 +11,4 @@ captcha
 tenacity
 requests
 BeautifulSoup4
+lxml

@@ -1,7 +1,18 @@
-from app import create_app
-from app.models.user import User
+import time
+import asyncio
 
-create_app().app_context().push()
 
-user = User.get_by_id('31702411')
-user.modify(password='990718')
+# 定义异步函数
+async def hello():
+    time.sleep(1)
+    print(2)
+
+
+def run():
+    loop.run_until_complete(hello())
+    print(1)
+
+
+loop = asyncio.get_event_loop()
+if __name__ == '__main__':
+    run()

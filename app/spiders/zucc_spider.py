@@ -92,7 +92,7 @@ class ZuccSpider(OjSpider):
     def _get_ce_info(self, remote_id):
         url = 'http://acm.zucc.edu.cn/ceinfo.php?sid={}'.format(remote_id)
         res = self.request.get(url=url)
-        soup = BeautifulSoup(res.text)
+        soup = BeautifulSoup(res.text, 'lxml')
         try:
             return soup.find(id='errtxt').text
         except:

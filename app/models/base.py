@@ -38,6 +38,7 @@ class Base(db.Model):
             if hasattr(cls, 'create_time'):
                 setattr(base, 'create_time', datetime.datetime.now())
             db.session.add(base)
+        return base
 
     def modify(self, **kwargs):
         with db.auto_commit():
@@ -45,6 +46,10 @@ class Base(db.Model):
                 if value is not None:
                     if hasattr(self, key):
                         setattr(self, key, value)
+
+    def delete(self):
+        with db.auto_commit():
+            db.session.delete(self)
 
     @classmethod
     def search(cls, **kwargs):
@@ -57,12 +62,13 @@ class Base(db.Model):
                     else:
                         res = res.filter(getattr(cls, key) == value)
 
-        for key, value in kwargs.get('order', dict()).items():
-            if hasattr(cls, key):
-                if value == 'asc':
-                    res = res.order_by(asc(getattr(cls, key)))
-                elif value == 'desc':
-                    res = res.order_by(desc(getattr(cls, key)))
+        if kwargs.get('order'):
+            for key, value in kwargs['order'].items():
+                if hasattr(cls, key):
+                    if value == 'asc':
+                        res = res.order_by(asc(getattr(cls, key)))
+                    elif value == 'desc':
+                        res = res.order_by(desc(getattr(cls, key)))
         page = kwargs.get('page') if kwargs.get('page') else 1
         page_size = kwargs.get('page_size') if kwargs.get('page_size') else 20
         data = {

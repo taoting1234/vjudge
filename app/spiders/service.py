@@ -1,13 +1,24 @@
 import random
 import time
-from flask import g
 from app.models.problem import Problem
 from app.models.remote_user import RemoteUser
 from app.models.solution import Solution
 from app.models.solution_log import SolutionLog
+from threading import Thread
 # 导入spider
 from app.spiders.vjudge_spider import VjudgeSpider
 from app.spiders.zucc_spider import ZuccSpider
+
+
+def async_submit_code(problem_id, solution_id, language, code):
+    t = Thread(target=submit_code_with_context, args=(problem_id, solution_id, language, code))
+    t.start()
+
+
+def submit_code_with_context(problem_id, solution_id, language, code):
+    from app import create_app
+    with create_app().app_context():
+        submit_code(problem_id, solution_id, language, code)
 
 
 def check_status(spider, solution):
