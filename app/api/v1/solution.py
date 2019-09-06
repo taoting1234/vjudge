@@ -76,7 +76,7 @@ class SolutionResource(Resource):
         if solution is None:
             raise NotFound()
         status = modify_solution_parser.parse_args()['status']
-        SolutionLog.create(solution_id=solution.id, status='{} modify status to {}'.format(g.user.id, status))
+        solution.modify(status='{} modify status to {}'.format(g.user.id, status))
 
 
 class SolutionCodeResource(Resource):
@@ -111,7 +111,7 @@ class SolutionCollectionResource(Resource):
         old_language = args['language']
         args['language'] = real_language
         solution = Solution.create(**args, user_id=g.user.id, status='create solution')
-        async_submit_code(args['problem_id'], solution.id, old_language, args['code'])
+        async_submit_code(solution.id, args['problem_id'], old_language, args['code'])
         return {'message': 'create success', 'solution_id': solution.id}, 201
 
 

@@ -1,4 +1,5 @@
 from app.models.language import Language
+from app.spiders.captcha import Lianzhong, save_captcha
 from app.spiders.helper import get_base64
 from app.spiders.oj_spider import OjSpider
 from app.spiders.spider_http import SpiderHttp
@@ -38,7 +39,7 @@ class VjudgeSpider(OjSpider):
             'language': language,
             'share': 0,
             'source': get_base64(code),
-            'captcha': kwargs.get('captcha', ''),
+            'captcha': kwargs.get('captcha_result', ''),
             'oj': remote_oj,
             'probNum': remote_problem,
         }
@@ -46,11 +47,25 @@ class VjudgeSpider(OjSpider):
         error = res.get('error')
         if error:
             if 'captcha' in error:
-                pass
+                if kwargs.get('captcha_id'):
+                    Lianzhong.report(kwargs.get('captcha_id'))
+                captcha = self._get_captcha()
+                captcha_res = Lianzhong.recognize(captcha)
+                if not captcha_res.get('success'):
+                    return {
+                        'success': False,
+                        'error': 'recognize error: {}'.format(captcha_res.get('message'))
+                    }
+                captcha_id = captcha_res['captcha_id']
+                captcha_result = captcha_res['result']
+                return self.submit(remote_oj, remote_problem, language, code,
+                                   captcha_id=captcha_id, captcha_result=captcha_result, captcha=captcha)
             return {
                 'success': False,
                 'error': error
             }
+        if kwargs.get('captcha_result'):
+            save_captcha(kwargs.get('captcha'), kwargs.get('captcha_result'))
         return {
             'success': True,
             'remote_id': res.get('runId')
@@ -58,13 +73,21 @@ class VjudgeSpider(OjSpider):
 
     def get_status(self, remote_id):
         url = 'https://vjudge.net/solution/data/{}'.format(remote_id)
-        res = self.request.post(url=url)
-        return res.json()
+        res = self.request.post(url=url).json()
+
+        return {
+            'success': True,
+            'status': res['status'],
+            'run_time': res.get('runtime', 0),
+            'run_memory': res.get('memory', 0),
+            'processing': res['processing'] is True,
+            'additional_info': res.get('additionalInfo'),
+        }
 
     def _get_captcha(self):
         url = 'https://vjudge.net/util/captcha'
         res = self.request.get(url=url)
-        return get_base64(res.content)
+        return res.content
 
 
 if __name__ == '__main__':

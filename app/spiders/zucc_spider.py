@@ -70,8 +70,8 @@ class ZuccSpider(OjSpider):
         return {
             'success': True,
             'status': status,
-            'time': time,
-            'memory': memory,
+            'run_time': time,
+            'run_memory': memory,
             'processing': processing,
             'additional_info': additional_info
         }

@@ -3,11 +3,15 @@ import hashlib
 
 
 def get_base64(raw):
-    return base64.b64encode(raw.encode('utf8')).decode(),
+    if isinstance(raw, str):
+        raw = raw.encode('utf8')
+    return base64.b64encode(raw).decode()
 
 
 def get_md5(raw):
-    return hashlib.md5(raw.encode('utf8')).hexdigest()
+    if isinstance(raw, str):
+        raw = raw.encode('utf8')
+    return hashlib.md5(raw).hexdigest()
 
 
 if __name__ == '__main__':

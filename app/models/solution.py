@@ -4,6 +4,7 @@ from app.models.base import Base, db
 # 导入
 from app.models.problem import Problem
 from app.models.remote_user import RemoteUser
+from app.models.solution_log import SolutionLog
 
 
 class Solution(Base):
@@ -15,6 +16,8 @@ class Solution(Base):
     language_canonical = Column(String(100), nullable=False)
     status = Column(String(100), nullable=False)
     status_canonical = Column(String(100), nullable=False)
+    run_time = Column(Integer)
+    run_memory = Column(Integer)
     processing = Column(Integer, nullable=False)
     length = Column(Integer, nullable=True)
     remote_id = Column(String(100))
@@ -89,3 +92,5 @@ class Solution(Base):
                 if hasattr(self, key):
                     setattr(self, key, value)
             self.update_status()
+
+        SolutionLog.create(solution_id=self.id, status=kwargs['status'])
