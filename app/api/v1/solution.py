@@ -102,7 +102,7 @@ class SolutionCollectionResource(Resource):
         real_language = real_language[0].value
         old_language = args['language']
         args['language'] = real_language
-        solution = Solution.create(**args, user_id=g.user.id, status='create solution')
+        solution = Solution.create(**args, user_id=g.user.id, status='Local info: Create solution')
         async_submit_code(solution.id, args['problem_id'], old_language, args['code'])
         return {'message': 'create success', 'solution_id': solution.id}, 201
 

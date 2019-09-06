@@ -6,13 +6,15 @@ from bs4 import BeautifulSoup
 
 
 class ZuccSpider(OjSpider):
+    host = 'acm.zucc.edu.cn'
+
     def check_login_status(self):
-        url = 'http://acm.zucc.edu.cn/template/bs3/profile.php'
+        url = 'http://{}/template/bs3/profile.php'.format(self.host)
         res = self.request.get(url=url)
         return 'Login' not in res.text
 
     def login(self):
-        url = 'http://acm.zucc.edu.cn/login.php'
+        url = 'http://{}/login.php'.format(self.host)
         data = {
             'user_id': self.username,
             'password': get_md5(self.password)
@@ -24,7 +26,7 @@ class ZuccSpider(OjSpider):
         return True
 
     def get_status(self, remote_id):
-        url = 'http://acm.zucc.edu.cn/status-ajax.php?solution_id={}'.format(remote_id)
+        url = 'http://{}/status-ajax.php?solution_id={}'.format(self.host, remote_id)
         res = self.request.get(url=url)
         data = res.text.split(',')
         if len(data) != 5:
@@ -77,20 +79,27 @@ class ZuccSpider(OjSpider):
         }
 
     def submit(self, remote_oj, remote_problem, language, code, **kwargs):
-        url = 'http://acm.zucc.edu.cn/submit.php?ajax'
+        url = 'http://{}/submit.php?ajax'.format(self.host)
         data = {
             'id': remote_problem,
             'language': language,
             'source': code
         }
         res = self.request.post(url=url, data=data)
+        try:
+            int(res.text)
+        except:
+            return {
+                'success': False,
+                'error': 'Get Remote id error'
+            }
         return {
             'success': True,
             'remote_id': res.text
         }
 
     def _get_ce_info(self, remote_id):
-        url = 'http://acm.zucc.edu.cn/ceinfo.php?sid={}'.format(remote_id)
+        url = 'http://{}/ceinfo.php?sid={}'.format(self.host, remote_id)
         res = self.request.get(url=url)
         soup = BeautifulSoup(res.text, 'lxml')
         try:

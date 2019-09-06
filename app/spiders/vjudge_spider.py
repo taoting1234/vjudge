@@ -8,13 +8,15 @@ from app.spiders.spider_http import SpiderHttp
 
 
 class VjudgeSpider(OjSpider):
+    host = 'cn.vjudge.net'
+
     def check_login_status(self):
-        url = 'https://vjudge.net/user/checkLogInStatus'
+        url = 'https://{}/user/checkLogInStatus'.format(self.host)
         res = self.request.post(url=url)
         return res.text == 'true'
 
     def login(self):
-        url = 'https://vjudge.net/user/login'
+        url = 'https://{}/user/login'.format(self.host)
         self.request.sess.headers.update({
             'Content-Type': 'application/x-www-form-urlencoded'
         })
@@ -26,9 +28,9 @@ class VjudgeSpider(OjSpider):
         self.request.headers.pop('Content-Type')
         return res.text == 'success'
 
-    @staticmethod
-    def get_remote_oj():
-        url = 'https://vjudge.net/util/remoteOJs'
+    @classmethod
+    def get_remote_oj(cls):
+        url = 'https://{}/util/remoteOJs'.format(cls.host)
         res = SpiderHttp().get(url=url).json()
         for k, v in res.items():
             Language.delete_oj(v['name'])
@@ -36,7 +38,7 @@ class VjudgeSpider(OjSpider):
                 Language.create(oj=v['name'], key=key, value=value)
 
     def submit(self, remote_oj, remote_problem, language, code, **kwargs):
-        url = 'https://vjudge.net/problem/submit'
+        url = 'https://{}/problem/submit'.format(self.host)
         data = {
             'language': language,
             'share': 0,
@@ -72,13 +74,19 @@ class VjudgeSpider(OjSpider):
             }
         if kwargs.get('captcha_result'):
             save_captcha(kwargs.get('captcha'), kwargs.get('captcha_result'))
-        return {
-            'success': True,
-            'remote_id': res.get('runId')
-        }
+        try:
+            return {
+                'success': True,
+                'remote_id': res.get('runId')
+            }
+        except:
+            return {
+                'success': False,
+                'error': 'Get remote id error'
+            }
 
     def get_status(self, remote_id):
-        url = 'https://vjudge.net/solution/data/{}'.format(remote_id)
+        url = 'https://{}/solution/data/{}'.format(self.host, remote_id)
         res = self.request.post(url=url).json()
 
         return {
@@ -91,7 +99,7 @@ class VjudgeSpider(OjSpider):
         }
 
     def _get_captcha(self):
-        url = 'https://vjudge.net/util/captcha'
+        url = 'https://{}/util/captcha'.format(self.host)
         res = self.request.get(url=url)
         return res.content
 

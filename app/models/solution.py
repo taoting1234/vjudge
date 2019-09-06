@@ -90,6 +90,8 @@ class Solution(Base):
             solution.processing = 1
             solution.update_status()
             db.session.add(solution)
+
+        SolutionLog.create(solution_id=solution.id, status=kwargs['status'])
         return solution
 
     def modify(self, **kwargs):

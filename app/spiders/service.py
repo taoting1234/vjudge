@@ -28,7 +28,11 @@ def check_status(spider, solution):
     t = 0
     while 1:
         t += 1
-        res = spider.get_status(solution.remote_id)
+        try:
+            res = spider.get_status(solution.remote_id)
+        except:
+            time.sleep(1)
+            continue
         now_status = 'Remote info: {}'.format(res.get('status'))
         res['status'] = now_status
         if last_status != now_status:
@@ -43,24 +47,30 @@ def check_status(spider, solution):
 
 
 def get_remote_user(oj):
-    remote_user_list = RemoteUser.search(oj=oj.lower(), status=1, page_size=100000)['data']
-    if remote_user_list:
-        remote_user = random.choice(remote_user_list)
-    else:
-        remote_user = random.choice(RemoteUser.search(oj='vjudge', status=1, page_size=100000)['data'])
+    g.solution.modify(status='Local info: Waiting for assign remote user')
+    remote_user = None
+    while not remote_user:
+        remote_user_list = RemoteUser.search(oj=oj.lower(), status=1, page_size=100000)['data']
+        if remote_user_list:
+            remote_user = random.choice(remote_user_list)
+        else:
+            remote_user = random.choice(RemoteUser.search(oj='vjudge', status=1, page_size=100000)['data'])
+        time.sleep(1)
+    remote_user.modify(status=0)
     return remote_user
 
 
 def submit_code(solution_id, problem_id, language, code):
+    solution = Solution.get_by_id(solution_id)
+    g.solution = solution
     problem = Problem.get_by_id(problem_id)
     remote_user = get_remote_user(problem.remote_oj)
-    solution = Solution.get_by_id(solution_id)
     solution.modify(status='Local info: Assign remote user: {}'.format(remote_user.username),
                     remote_user_id=remote_user.id)
     spider = globals()[remote_user.oj.title() + 'Spider'](remote_user)
     solution.modify(status='Local info: Submitting')
-    g.solution = solution
     res = spider.submit(problem.remote_oj, problem.remote_prob, language, code)
+    remote_user.modify(status=1)
     if not res.get('success'):
         solution.modify(status='Remote info: {}'.format(res.get('error')))
         return
