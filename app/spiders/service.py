@@ -43,11 +43,11 @@ def check_status(spider, solution):
 
 
 def get_remote_user(oj):
-    remote_user_list = RemoteUser.search(oj=oj.lower(), page_size=100000)['data']
+    remote_user_list = RemoteUser.search(oj=oj.lower(), status=1, page_size=100000)['data']
     if remote_user_list:
         remote_user = random.choice(remote_user_list)
     else:
-        remote_user = random.choice(RemoteUser.search(oj='vjudge', page_size=100000)['data'])
+        remote_user = random.choice(RemoteUser.search(oj='vjudge', status=1, page_size=100000)['data'])
     return remote_user
 
 
