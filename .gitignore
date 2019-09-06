@@ -1,3 +1,4 @@
 .idea/
 app/config/secure.py
 venv
+test.py

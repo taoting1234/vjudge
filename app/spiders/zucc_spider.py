@@ -67,8 +67,8 @@ class ZuccSpider(OjSpider):
             processing = 0
             additional_info = self._get_ce_info(remote_id)
 
-        time = int(data[1])
-        memory = int(data[2])
+        time = int(data[2])
+        memory = int(data[1])
         return {
             'success': True,
             'status': status,
