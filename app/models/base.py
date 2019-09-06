@@ -53,6 +53,7 @@ class Base(db.Model):
 
     @classmethod
     def search(cls, **kwargs):
+        db.session.commit()
         res = cls.query
         for key, value in kwargs.items():
             if value is not None:

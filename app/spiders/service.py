@@ -48,14 +48,18 @@ def check_status(spider, solution):
 
 def get_remote_user(oj):
     g.solution.modify(status='Local info: Waiting for assign remote user')
+    oj = oj.lower()
+    if not RemoteUser.search(oj=oj.lower(), page_size=100000)['data']:
+        oj = 'vjudge'
+
     remote_user = None
+    t = 0
     while not remote_user:
-        remote_user_list = RemoteUser.search(oj=oj.lower(), status=1, page_size=100000)['data']
-        vjudge_remote_user_list = RemoteUser.search(oj='vjudge', status=1, page_size=100000)['data']
+        t += 1
+        print(t)
+        remote_user_list = RemoteUser.search(oj=oj, status=1, page_size=100000)['data']
         if remote_user_list:
             remote_user = random.choice(remote_user_list)
-        elif vjudge_remote_user_list:
-            remote_user = random.choice(vjudge_remote_user_list)
         else:
             time.sleep(1)
     remote_user.modify(status=0)
