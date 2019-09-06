@@ -53,10 +53,7 @@ def get_remote_user(oj):
         oj = 'vjudge'
 
     remote_user = None
-    t = 0
     while not remote_user:
-        t += 1
-        print(t)
         remote_user_list = RemoteUser.search(oj=oj, status=1, page_size=100000)['data']
         if remote_user_list:
             remote_user = random.choice(remote_user_list)

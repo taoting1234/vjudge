@@ -1,6 +1,6 @@
 from flask import g
 from flask_restful import Resource, reqparse, marshal_with, fields
-from app.libs.error import NotFound, ParameterException
+from app.libs.error import NotFound, ParameterException, Forbidden
 from app.libs.fields import meta_fields
 from app.libs.parser import search_parser
 from app.libs.token_auth import auth, self_only, admin_only
@@ -91,6 +91,21 @@ class SolutionDetailResource(Resource):
         return solution
 
 
+class SolutionRejudgeResource(Resource):
+    @auth.login_required
+    def post(self, id_):
+        solution = Solution.get_by_id(id_)
+        if solution is None:
+            raise NotFound()
+        if solution.status_canonical != 'OTHER' and g.user.permission != -1:
+            raise Forbidden()
+        problem = Problem.get_by_id(solution.problem_id)
+        old_language = Language.search(oj=problem.remote_oj, value=solution.language)['data'][0].key
+        solution.modify(status='Local info: Start rejudge')
+        async_submit_code(solution.id, solution.problem_id, old_language, solution.code)
+        return {'message': 'create rejudge success'}, 201
+
+
 class SolutionCollectionResource(Resource):
     @auth.login_required
     def post(self):
@@ -103,8 +118,8 @@ class SolutionCollectionResource(Resource):
         old_language = args['language']
         args['language'] = real_language
         solution = Solution.create(**args, user_id=g.user.id, status='Local info: Create solution')
-        async_submit_code(solution.id, args['problem_id'], old_language, args['code'])
-        return {'message': 'create success', 'solution_id': solution.id}, 201
+        async_submit_code(solution.id, solution.problem_id, old_language, solution.code)
+        return {'message': 'create solution success', 'solution_id': solution.id}, 201
 
 
 class SolutionSearchResource(Resource):
