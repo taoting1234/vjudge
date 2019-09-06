@@ -51,11 +51,13 @@ def get_remote_user(oj):
     remote_user = None
     while not remote_user:
         remote_user_list = RemoteUser.search(oj=oj.lower(), status=1, page_size=100000)['data']
+        vjudge_remote_user_list = RemoteUser.search(oj='vjudge', status=1, page_size=100000)['data']
         if remote_user_list:
             remote_user = random.choice(remote_user_list)
+        elif vjudge_remote_user_list:
+            remote_user = random.choice(vjudge_remote_user_list)
         else:
-            remote_user = random.choice(RemoteUser.search(oj='vjudge', status=1, page_size=100000)['data'])
-        time.sleep(1)
+            time.sleep(1)
     remote_user.modify(status=0)
     return remote_user
 
