@@ -1,5 +1,4 @@
 import functools
-import hashlib
 import time
 from flask import current_app, g, request
 from flask_httpauth import HTTPBasicAuth
@@ -8,12 +7,9 @@ from itsdangerous import TimedJSONWebSignatureSerializer \
 from app.config.secure import WHITELIST_UA, SECRET_KEY
 from app.libs.error import Forbidden, AuthFailed
 from app.models.user import User
+from app.libs.helper import get_md5
 
 auth = HTTPBasicAuth()
-
-
-def md5(raw):
-    return hashlib.md5(raw.encode('utf8')).hexdigest()
 
 
 @auth.verify_password
@@ -21,10 +17,10 @@ def verify_token(token, secret):
     ua = request.headers.get('User-Agent', '')
     if ua != WHITELIST_UA:
         timestamp = int(request.headers.get('Timestamp', 0))
-        if abs(timestamp - int(time.time())) > 10:
+        if abs(timestamp - int(time.time())) > 60:
             raise AuthFailed()
 
-        my_secret = md5(token + str(timestamp))
+        my_secret = get_md5(token + str(timestamp))
         if my_secret != secret:
             raise AuthFailed()
 
@@ -41,7 +37,6 @@ def verify_token(token, secret):
 
 
 def generate_auth_token(uid, expiration):
-    """生成令牌"""
     s = Serializer(SECRET_KEY, expires_in=expiration)
     return s.dumps({'uid': uid}).decode('ascii')
 

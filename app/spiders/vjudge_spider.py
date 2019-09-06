@@ -1,6 +1,8 @@
+from urllib.parse import quote
+from flask import g
 from app.models.language import Language
 from app.spiders.captcha import Lianzhong, save_captcha
-from app.spiders.helper import get_base64
+from app.libs.helper import get_base64
 from app.spiders.oj_spider import OjSpider
 from app.spiders.spider_http import SpiderHttp
 
@@ -38,7 +40,7 @@ class VjudgeSpider(OjSpider):
         data = {
             'language': language,
             'share': 0,
-            'source': get_base64(code),
+            'source': get_base64(quote(code)),
             'captcha': kwargs.get('captcha_result', ''),
             'oj': remote_oj,
             'probNum': remote_problem,
@@ -46,10 +48,12 @@ class VjudgeSpider(OjSpider):
         res = self.request.post(url=url, data=data).json()
         error = res.get('error')
         if error:
-            if 'captcha' in error:
+            g.solution.modify(status='Remote info: {}'.format(error))
+            if 'Captcha' in error:
                 if kwargs.get('captcha_id'):
                     Lianzhong.report(kwargs.get('captcha_id'))
                 captcha = self._get_captcha()
+                g.solution.modify(status='Local info: Try to recognize captcha')
                 captcha_res = Lianzhong.recognize(captcha)
                 if not captcha_res.get('success'):
                     return {
@@ -58,6 +62,8 @@ class VjudgeSpider(OjSpider):
                     }
                 captcha_id = captcha_res['captcha_id']
                 captcha_result = captcha_res['result']
+                g.solution.modify(status='Local info: Recognize captcha success: {}'.format(captcha_result))
+                g.solution.modify(status='Local info: Resubmitting')
                 return self.submit(remote_oj, remote_problem, language, code,
                                    captcha_id=captcha_id, captcha_result=captcha_result, captcha=captcha)
             return {

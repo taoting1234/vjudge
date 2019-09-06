@@ -4,7 +4,7 @@ import requests
 
 from app.config.secure import lianzhong_software_id, lianzhong_software_secret, lianzhong_username, \
     lianzhong_password
-from app.spiders.helper import get_base64
+from app.libs.helper import get_base64
 
 
 class Lianzhong:
@@ -14,7 +14,7 @@ class Lianzhong:
     password = lianzhong_password
 
     @classmethod
-    def recognize(cls, img, type_='1008', min_=7, max_=7):
+    def recognize(cls, img, type_='1015', min_=7, max_=7):
         img = get_base64(img)
         url = 'https://v2-api.jsdama.com/upload'
         data = {

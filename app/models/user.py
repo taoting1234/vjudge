@@ -9,7 +9,7 @@ class User(Base):
     id = Column(String(100), primary_key=True)
     _password = Column('password', String(100), nullable=False)
     nickname = Column(String(100))
-    permission = Column(Integer, nullable=False, default=0)
+    permission = Column(Integer, nullable=False, default=0, index=True)
 
     @property
     def password(self):
@@ -18,15 +18,6 @@ class User(Base):
     @password.setter
     def password(self, raw):
         self._password = generate_password_hash(raw)
-
-    @property
-    def scope(self):
-        if self.permission == 1:  # 普通用户
-            return 'UserScope'
-        elif self.permission == -1:  # 管理员
-            return 'AdminScope'
-        else:
-            return 'UserScope'
 
     @classmethod
     def verify(cls, id_, password):

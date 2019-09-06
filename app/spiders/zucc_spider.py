@@ -1,6 +1,6 @@
 import re
 from app.models.remote_user import RemoteUser
-from app.spiders.helper import get_md5
+from app.libs.helper import get_md5
 from app.spiders.oj_spider import OjSpider
 from bs4 import BeautifulSoup
 
@@ -32,37 +32,37 @@ class ZuccSpider(OjSpider):
                 'success': False
             }
         status = int(data[0])
-        processing = True
+        processing = 1
         additional_info = ''
         if status == 0:
-            status = 'waiting'
+            status = 'Waiting'
         elif status == 1:
-            status = 'waiting rejudge'
+            status = 'Waiting rejudge'
         elif status == 2:
-            status = 'compiling'
+            status = 'Compiling'
         elif status == 3:
-            status = 'running'
+            status = 'Running'
         elif status == 4:
-            status = 'accepted'
-            processing = False
+            status = 'Accepted'
+            processing = 0
         elif status == 5:
-            status = 'presentation error'
-            processing = False
+            status = 'Presentation error'
+            processing = 0
         elif status == 6:
-            status = 'wrong answer'
-            processing = False
+            status = 'Wrong answer'
+            processing = 0
         elif status == 7:
-            status = 'time limit exceed'
-            processing = False
+            status = 'Time limit exceed'
+            processing = 0
         elif status == 8:
-            status = 'memory limit exceed'
-            processing = False
+            status = 'Memory limit exceed'
+            processing = 0
         elif status == 9:
-            status = 'output limit exceed'
-            processing = False
+            status = 'Output limit exceed'
+            processing = 0
         elif status == 11:
-            status = 'compile error'
-            processing = False
+            status = 'Compile error'
+            processing = 0
             additional_info = self._get_ce_info(remote_id)
 
         time = int(data[1])

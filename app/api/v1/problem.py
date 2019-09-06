@@ -18,7 +18,6 @@ search_problem_parser = reqparse.RequestParser()
 search_problem_parser.add_argument('remote_oj', type=str)
 search_problem_parser.add_argument('remote_prob', type=str)
 search_problem_parser.add_argument('title', type=str)
-search_problem_parser.add_argument('description', type=str)
 
 problem_fields = {
     'id': fields.Integer,
@@ -27,8 +26,10 @@ problem_fields = {
     'title': fields.String
 }
 
-problem_description_fields = problem_fields.copy()
-problem_description_fields['description'] = fields.String
+problem_detail_fields = problem_fields.copy()
+problem_detail_fields.update({
+    'description': fields.String
+})
 
 problem_list_fields = {
     'data': fields.List(fields.Nested(problem_fields)),
@@ -56,9 +57,9 @@ class ProblemResource(Resource):
         return {'message': 'delete success'}, 204
 
 
-class ProblemDescriptionResource(Resource):
+class ProblemDetailResource(Resource):
     @auth.login_required
-    @marshal_with(problem_description_fields)
+    @marshal_with(problem_detail_fields)
     def get(self, id_):
         problem = Problem.get_by_id(id_)
         if problem is None:
