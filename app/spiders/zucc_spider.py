@@ -1,4 +1,7 @@
 import re
+
+from parsel import Selector
+
 from app.models.remote_user import RemoteUser
 from app.libs.helper import get_md5
 from app.spiders.oj_spider import OjSpider
@@ -107,12 +110,34 @@ class ZuccSpider(OjSpider):
         except:
             return ''
 
+    def get_problem(self, remote_oj, remote_problem):
+        url = 'http://acm.zucc.edu.cn/problem.php?id={}'.format(remote_problem)
+        res = self.request.get(url=url)
+        selector = Selector(res.text)
+        title = selector.xpath('/html/body/div[1]/div[2]/div[1]/center/h3/text()').get('').split(':')[1].strip()
+        data = {
+            'time_limit': float(
+                selector.xpath('/html/body/div[1]/div[2]/div[1]/center/span[2]/span/text()').get('').strip()),
+            'memory_limit': float(
+                selector.xpath('/html/body/div[1]/div[2]/div[1]/center/text()[2]').get('').replace('MB', '').strip()),
+            'description': selector.xpath('/html/body/div[1]/div[2]/div[2]/div[1]/div[2]/text()').get('').strip(),
+            'input': selector.xpath('/html/body/div[1]/div[2]/div[2]/div[2]/div[2]/text()').get('').strip(),
+            'output': selector.xpath('/html/body/div[1]/div[2]/div[2]/div[3]/div[2]/text()').get('').strip(),
+            'sample_input': selector.xpath('//*[@id="sampleinput"]/text()').get('').replace('\r', '').strip(),
+            'sample_output': selector.xpath('//*[@id="sampleoutput"]/text()').get('').replace('\r', '').strip()
+        }
+        return {
+            'title': title,
+            'description': self.problem_format.format(**data)
+        }
+
 
 if __name__ == '__main__':
     from app import create_app
 
     create_app().app_context().push()
-    remote_user = RemoteUser.get_by_id(2)
+    remote_user = RemoteUser.get_by_id(3)
 
     spider = ZuccSpider(remote_user)
-    spider._get_ce_info('99839')
+    r = spider.get_problem('', '1000')
+    print(r)

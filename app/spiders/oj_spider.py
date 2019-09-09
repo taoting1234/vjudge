@@ -2,6 +2,36 @@ from app.spiders.spider_http import SpiderHttp
 
 
 class OjSpider:
+    problem_format = """
+**Time Limit: {time_limit}ms**
+
+**Memory Limit: {memory_limit}MB**
+
+### Description
+
+{description}
+
+### Input
+
+{input}
+
+### Output
+
+{output}
+
+### Sample Input
+
+```
+{sample_input}
+```
+
+### Sample Output
+
+```
+{sample_input}
+```
+"""
+
     def __init__(self, remote_user):
         self.username = remote_user.username
         self.password = remote_user.password
@@ -25,4 +55,7 @@ class OjSpider:
         pass
 
     def submit(self, remote_oj, remote_problem, language, code, **kwargs):
+        pass
+
+    def get_problem(self, remote_oj, remote_problem):
         pass
