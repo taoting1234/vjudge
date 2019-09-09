@@ -13,3 +13,4 @@ requests
 BeautifulSoup4
 lxml
 gevent
+parsel
