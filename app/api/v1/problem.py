@@ -7,8 +7,6 @@ from app.models.problem import Problem
 create_problem_parser = reqparse.RequestParser()
 create_problem_parser.add_argument('remote_oj', type=str, required=True)
 create_problem_parser.add_argument('remote_prob', type=str, required=True)
-create_problem_parser.add_argument('title', type=str)
-create_problem_parser.add_argument('description', type=str)
 
 modify_problem_parser = reqparse.RequestParser()
 modify_problem_parser.add_argument('title', type=str)

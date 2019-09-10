@@ -80,3 +80,12 @@ def submit_code(solution_id, problem_id, language, code):
     remote_id = res['remote_id']
     solution.modify(status='Local info: Get remote id: {}'.format(remote_id), remote_id=remote_id)
     check_status(spider, solution)
+
+
+def get_problem_info(remote_oj, remote_problem):
+    oj = remote_oj.lower()
+    if not RemoteUser.search(oj=oj.lower(), page_size=100000)['data']:
+        oj = 'vjudge'
+    remote_user = random.choice(RemoteUser.search(oj=oj, page_size=100000)['data'])
+
+    pass

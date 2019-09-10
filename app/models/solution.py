@@ -48,8 +48,10 @@ class Solution(Base):
             return "OLE"
         elif "runtime error" in self.status.lower():
             return "RE"
+        elif self.processing == 1:
+            return "PENDING"
         else:
-            return "OTHER"
+            return "SE"
 
     def get_language_canonical(self):
         if "c++" in self.language.lower() or "g++" in self.language.lower():
