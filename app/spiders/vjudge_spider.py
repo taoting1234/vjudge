@@ -1,5 +1,6 @@
 from urllib.parse import quote
 from flask import g
+from parsel import Selector
 from app.models.language import Language
 from app.spiders.captcha import Lianzhong, save_captcha
 from app.libs.helper import get_base64
@@ -8,7 +9,7 @@ from app.spiders.spider_http import SpiderHttp
 
 
 class VjudgeSpider(OjSpider):
-    host = 'cn.vjudge.net'
+    host = 'vjudge.net'
 
     def check_login_status(self):
         url = 'https://{}/user/checkLogInStatus'.format(self.host)
@@ -103,10 +104,27 @@ class VjudgeSpider(OjSpider):
         res = self.request.get(url=url)
         return res.content
 
+    def _get_data_id(self, remote_oj, remote_problem):
+        url = 'https://{}/problem/{}-{}'.format(self.host, remote_oj, remote_problem)
+        res = self.request.get(url=url)
+        selector = Selector(res.text)
+        data_id = selector.xpath('//*[@id="prob-descs"]/li[1]/a[1]').attrib['data-id']
+        return data_id
+
+    def get_problem(self, remote_oj, remote_problem):
+        # url = 'https://{}/problem/description/{}'.format(self.host, self._get_data_id(remote_oj, remote_problem))
+        # res = self.request.get(url=url)
+        return {
+            'title': '',
+            'description': ''
+        }
+
 
 if __name__ == '__main__':
     from app import create_app
+    from app.models.remote_user import RemoteUser
 
     create_app().app_context().push()
 
-    VjudgeSpider.get_remote_oj()
+    spider = VjudgeSpider(RemoteUser.get_by_id(4))
+    spider.get_problem('HDU', '1000')

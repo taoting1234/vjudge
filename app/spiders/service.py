@@ -87,5 +87,12 @@ def get_problem_info(remote_oj, remote_problem):
     if not RemoteUser.search(oj=oj.lower(), page_size=100000)['data']:
         oj = 'vjudge'
     remote_user = random.choice(RemoteUser.search(oj=oj, page_size=100000)['data'])
-
-    pass
+    spider = globals()[remote_user.oj.title() + 'Spider'](remote_user)
+    try:
+        data = spider.get_problem(remote_oj, remote_problem)
+    except:
+        return {
+            'title': '',
+            'description': ''
+        }
+    return data

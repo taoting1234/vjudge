@@ -3,6 +3,7 @@ from app.libs.error import ParameterException, NotFound
 from app.libs.fields import meta_fields
 from app.libs.token_auth import auth, admin_only
 from app.models.problem import Problem
+from app.spiders.service import get_problem_info
 
 create_problem_parser = reqparse.RequestParser()
 create_problem_parser.add_argument('remote_oj', type=str, required=True)
@@ -21,7 +22,9 @@ problem_fields = {
     'id': fields.Integer,
     'remote_oj': fields.String,
     'remote_prob': fields.String,
-    'title': fields.String
+    'title': fields.String,
+    'accept_number': fields.Integer,
+    'submit_number': fields.Integer
 }
 
 problem_detail_fields = problem_fields.copy()
@@ -72,7 +75,8 @@ class ProblemCollectionResource(Resource):
         args = create_problem_parser.parse_args()
         if Problem.search(remote_oj=args['remote_oj'], remote_prob=args['remote_prob'])['data']:
             raise ParameterException('problem already exist')
-        problem = Problem.create(**args)
+        data = get_problem_info(args['remote_oj'], args['remote_prob'])
+        problem = Problem.create(**args, title=data['title'], description=data['description'])
         return {'message': 'create success', 'problem_id': problem.id}, 201
 
 

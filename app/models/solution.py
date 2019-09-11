@@ -2,7 +2,6 @@ import datetime
 from sqlalchemy import Column, String, Integer, Text, ForeignKey, DateTime
 from app.models.base import Base, db
 # 导入
-from app.models.problem import Problem
 from app.models.remote_user import RemoteUser
 from app.models.contest import Contest
 from app.models.solution_log import SolutionLog
