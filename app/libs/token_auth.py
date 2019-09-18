@@ -14,26 +14,34 @@ auth = HTTPBasicAuth()
 
 @auth.verify_password
 def verify_token(token, secret):
+    g.user = get_current_user()
+    if not g.user:
+        raise AuthFailed()
+    return True
+
+
+def get_current_user():
+    token = auth.get_auth()['username']
+    secret = auth.get_auth()['password']
     ua = request.headers.get('User-Agent', '')
     if ua != WHITELIST_UA:
         timestamp = int(request.headers.get('Timestamp', 0))
         if abs(timestamp - int(time.time())) > 60:
-            raise AuthFailed()
+            return None
 
         my_secret = get_md5(token + str(timestamp))
         if my_secret != secret:
-            raise AuthFailed()
+            return None
 
     s = Serializer(current_app.config['SECRET_KEY'])
     try:
         data = s.loads(token)
     except BadSignature:
-        raise AuthFailed('token is invalid')
+        return None
     except SignatureExpired:
-        raise AuthFailed('token is expired')
+        return None
     uid = data['uid']
-    g.user = User.get_by_id(uid)
-    return True
+    return User.get_by_id(uid)
 
 
 def generate_auth_token(uid, expiration):

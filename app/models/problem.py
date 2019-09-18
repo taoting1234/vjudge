@@ -9,6 +9,7 @@ class Problem(Base):
     remote_prob = Column(String(100), nullable=False, index=True)
     title = Column(String(100))
     description = Column(Text)
+    status = Column(Integer, nullable=False, index=True)
 
     @property
     def accept_number(self):
