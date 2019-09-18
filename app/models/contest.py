@@ -1,3 +1,5 @@
+import datetime
+
 from sqlalchemy import Column, String, Integer, DateTime
 from app.models.base import Base
 from app.models.contest_problem import ContestProblem
@@ -21,3 +23,12 @@ class Contest(Base):
 
         for problem_id in raw:
             ContestProblem.create(contest_id=self.id, problem_id=problem_id)
+
+    @property
+    def status(self):
+        now_time = datetime.datetime.now()
+        if self.start_time and now_time < self.start_time:
+            return 1
+        if not self.end_time or now_time < self.end_time:
+            return 2
+        return 3

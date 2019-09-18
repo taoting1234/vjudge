@@ -23,7 +23,8 @@ contest_fields = {
     'name': fields.String,
     'type': fields.Integer,
     'start_time': fields.DateTime,
-    'end_time': fields.DateTime
+    'end_time': fields.DateTime,
+    'status': fields.Integer
 }
 
 contest_detail_fields = contest_fields.copy()
