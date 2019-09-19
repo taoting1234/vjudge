@@ -1,4 +1,6 @@
 from urllib.parse import quote
+
+from bs4 import BeautifulSoup
 from flask import g
 from parsel import Selector
 from app.models.language import Language
@@ -96,8 +98,14 @@ class VjudgeSpider(OjSpider):
             'run_time': res.get('runtime', 0),
             'run_memory': res.get('memory', 0),
             'processing': res['processing'] is True,
-            'additional_info': res.get('additionalInfo'),
+            'additional_info': VjudgeSpider.parser_ce_info(res['additionalInfo'])
+            if res.get('additionalInfo') else ''
         }
+
+    @staticmethod
+    def parser_ce_info(raw):
+        soup = BeautifulSoup(raw, 'lxml')
+        return soup.pre.text
 
     def _get_captcha(self):
         url = 'https://{}/util/captcha'.format(self.host)
