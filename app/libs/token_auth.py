@@ -21,8 +21,8 @@ def verify_token(token, secret):
 
 
 def get_current_user():
-    token = auth.get_auth()['username']
-    secret = auth.get_auth()['password']
+    token = auth.get_auth()['username'] if auth.get_auth() else ''
+    secret = auth.get_auth()['password'] if auth.get_auth() else ''
     ua = request.headers.get('User-Agent', '')
     if ua != WHITELIST_UA:
         timestamp = int(request.headers.get('Timestamp', 0))
