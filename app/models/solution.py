@@ -28,7 +28,7 @@ class Solution(Base):
 
     @property
     def solution_log(self):
-        return SolutionLog.search(solution=self.id, page_size=100000)['data']
+        return SolutionLog.search(solution_id=self.id, page_size=100000)['data']
 
     def get_status_canonical(self):
         if "accepted" in self.status.lower():

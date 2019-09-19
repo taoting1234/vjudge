@@ -4,6 +4,7 @@ from app.libs.error import NotFound, ParameterException, Forbidden
 from app.libs.fields import meta_fields
 from app.libs.parser import search_parser
 from app.libs.token_auth import auth, self_only, admin_only
+from app.models.contest import Contest
 from app.models.language import Language
 from app.models.problem import Problem
 from app.models.solution import Solution
@@ -13,6 +14,7 @@ create_solution_parser = reqparse.RequestParser()
 create_solution_parser.add_argument('problem_id', type=int, required=True)
 create_solution_parser.add_argument('code', type=str, required=True)
 create_solution_parser.add_argument('language', type=str, required=True)
+create_solution_parser.add_argument('contest_id', type=int)
 
 search_solution_parser = search_parser.copy()
 search_solution_parser.add_argument('problem_id', type=int)
@@ -111,6 +113,13 @@ class SolutionCollectionResource(Resource):
     def post(self):
         args = create_solution_parser.parse_args()
         problem = Problem.get_by_id(args['problem_id'])
+        if args['contest_id']:
+            contest = Contest.get_by_id(args['contest_id'])
+            if contest.status != 2:
+                raise ParameterException('contest not available')
+            if problem.id not in [i.id for i in contest.problem_list]:
+                raise ParameterException('problem not in contest')
+
         real_language = Language.search(oj=problem.remote_oj, key=args['language'])['data']
         if not real_language:
             raise ParameterException('language does not exist')
