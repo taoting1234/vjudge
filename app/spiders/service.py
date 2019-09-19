@@ -75,7 +75,7 @@ def submit_code(solution_id, problem_id, language, code):
     res = spider.submit(problem.remote_oj, problem.remote_prob, language, code)
     remote_user.modify(status=1)
     if not res.get('success'):
-        solution.modify(status='Remote info: {}'.format(res.get('error')))
+        solution.modify(status='Remote info: {}'.format(res.get('error')), processing=0)
         return
     remote_id = res['remote_id']
     solution.modify(status='Local info: Get remote id: {}'.format(remote_id), remote_id=remote_id)
