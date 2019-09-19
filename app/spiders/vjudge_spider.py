@@ -1,5 +1,4 @@
 from urllib.parse import quote
-
 from bs4 import BeautifulSoup
 from flask import g
 from parsel import Selector
